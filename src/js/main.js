@@ -182,30 +182,12 @@ const clickRandomCell = () => {
   } else clickRandomCell();
 };
 
-// функция, вызывающая клик по последней недостающей ячейке для выигрыша, если имеется
-const fillBeneficialCell = () => {
+// функция, вызывающая клик по наиболее выгодной ячейке для выигрыша, если имеется
+const fillBeneficialCell = (type) => {
   let targetCell;
 
   for (const line of WIN_LINES) {
-    targetCell = checkLine(line, "current");
-    if (targetCell) {
-      break;
-    }
-  }
-
-  const clickTargetCell = () => {
-    cells[targetCell].click();
-  };
-
-  return { targetCell, clickTargetCell };
-};
-
-// функция, вызывающая клик по последней недостающей ячейке для выигрыша противника, если имеется
-const breakOpponentLine = () => {
-  let targetCell;
-
-  for (const line of WIN_LINES) {
-    targetCell = checkLine(line, "opponent");
+    targetCell = checkLine(line, type);
     if (targetCell) {
       break;
     }
@@ -220,21 +202,21 @@ const breakOpponentLine = () => {
 
 // функция, отвечающая за ход компьютера, принимает режим сложности
 const makeTurn = (playMode) => {
-  const clickOpponentCell = breakOpponentLine().clickTargetCell;
-  const clickBeneficialCell = fillBeneficialCell().clickTargetCell;
+  const clickOpponentCell = fillBeneficialCell("opponent").clickTargetCell;
+  const clickBeneficialCell = fillBeneficialCell("current").clickTargetCell;
 
   if (playMode === PLAY_MODES.EASY) clickRandomCell(); // при легком - случайная ячейка
   if (playMode === PLAY_MODES.MEDIUM) {
-    if (breakOpponentLine().targetCell) {
+    if (fillBeneficialCell("opponent").targetCell) {
       clickOpponentCell(); // при среднем - пытается помешать противнику,
     } else clickRandomCell(); // а потом случайная ячейка
   }
   if (playMode === PLAY_MODES.HARD) {
     if (cells[4].textContent === "") {
       cells[4].click(); // при сложном - если центральная ячейка свободна, выбирает ее
-    } else if (fillBeneficialCell().targetCell) {
+    } else if (fillBeneficialCell("current").targetCell) {
       clickBeneficialCell(); // если не хватает одной ячейки до выигрыша - выбирает ее
-    } else if (breakOpponentLine().targetCell) {
+    } else if (fillBeneficialCell("opponent").targetCell) {
       clickOpponentCell(); // пытается помешать противнику
     } else clickRandomCell();
   }
