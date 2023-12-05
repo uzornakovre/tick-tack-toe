@@ -1,6 +1,7 @@
 .game {
   width: 620px;
   margin: 0 auto;
+  user-select: none;
 
   &__title {
     margin: 15px 0;
