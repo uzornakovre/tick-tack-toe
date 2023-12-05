@@ -138,6 +138,12 @@ const checkLine = (line, type = "all") => {
     if (cellA === target && cellC === target && cellB === "") return b;
     if (cellB === target && cellC === target && cellA === "") return a;
   }
+
+  if (type === "mixed") {
+    if (cellA.length && cellB.length && cellC === "") return c;
+    if (cellA.length && cellC.length && cellB === "") return b;
+    if (cellB.length && cellC.length && cellA === "") return a;
+  }
 };
 
 // функция проверки, закончена ли игра
@@ -175,15 +181,15 @@ const handlePlayAgainButtonClick = () => {
 // далее идут функции, отвечающие за режим игры с компьютером
 
 // функция, вызывающая клик по случайной ячейке
-const clickRandomCell = () => {
+const clickRandomCell = (forbiddenIndex = null) => {
   const randomIndex = Math.floor(Math.random() * cells.length);
-  if (cells[randomIndex].textContent === "") {
+  if (cells[randomIndex].textContent === "" && randomIndex !== forbiddenIndex) {
     cells[randomIndex].click();
   } else clickRandomCell();
 };
 
-// функция, вызывающая клик по наиболее выгодной ячейке для выигрыша, если имеется
-const fillBeneficialCell = (type) => {
+// функция, получения наиболее выгодной ячейки для выигрыша, если такая имеется, и клика по ней
+const getBeneficialCell = (type) => {
   let targetCell;
 
   for (const line of WIN_LINES) {
@@ -202,23 +208,28 @@ const fillBeneficialCell = (type) => {
 
 // функция, отвечающая за ход компьютера, принимает режим сложности
 const makeTurn = (playMode) => {
-  const clickOpponentCell = fillBeneficialCell("opponent").clickTargetCell;
-  const clickBeneficialCell = fillBeneficialCell("current").clickTargetCell;
+  const clickOpponentCell = getBeneficialCell("opponent").clickTargetCell;
+  const clickBeneficialCell = getBeneficialCell("current").clickTargetCell;
+  const forbiddenIndex = getBeneficialCell("mixed").targetCell;
 
   if (playMode === PLAY_MODES.EASY) clickRandomCell(); // при легком - случайная ячейка
   if (playMode === PLAY_MODES.MEDIUM) {
-    if (fillBeneficialCell("opponent").targetCell) {
+    if (getBeneficialCell("opponent").targetCell) {
       clickOpponentCell(); // при среднем - пытается помешать противнику,
     } else clickRandomCell(); // а потом случайная ячейка
   }
   if (playMode === PLAY_MODES.HARD) {
     if (cells[4].textContent === "") {
       cells[4].click(); // при сложном - если центральная ячейка свободна, выбирает ее
-    } else if (fillBeneficialCell("current").targetCell) {
+    } else if (getBeneficialCell("current").targetCell) {
       clickBeneficialCell(); // если не хватает одной ячейки до выигрыша - выбирает ее
-    } else if (fillBeneficialCell("opponent").targetCell) {
+    } else if (getBeneficialCell("opponent").targetCell) {
       clickOpponentCell(); // пытается помешать противнику
-    } else clickRandomCell();
+    } else if (forbiddenIndex && playfield.join("").length > 7) {
+      clickRandomCell(forbiddenIndex); // выбирает случайную, за исключением заведомо невыгодной ячейки
+    } else {
+      clickRandomCell();
+    }
   }
 };
 
