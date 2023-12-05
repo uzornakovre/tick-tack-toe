@@ -1,13 +1,13 @@
 export const PLAYERS = {
-  x: "X",
-  o: "O",
+  X: "X",
+  O: "O",
 };
 
 export const PLAY_MODES = {
-  player: "player",
-  easy: "easy",
-  medium: "medium",
-  hard: "hard",
+  PLAYER: "player",
+  EASY: "easy",
+  MEDIUM: "medium",
+  HARD: "hard",
 };
 
 export const WIN_LINES = [

@@ -1,6 +1,7 @@
 import "../assets/styles/index.scss";
 import { PLAYERS, PLAY_MODES, WIN_LINES } from "../utils/constants";
 
+const playfieldElement = document.querySelector(".game__playfield");
 const cells = document.querySelectorAll(".game__cell");
 const setupForm = document.querySelector(".game__setup");
 const messageElement = document.querySelector(".game__message");
@@ -8,8 +9,9 @@ const playAgainButton = document.querySelector("#play_again");
 
 let currentPlayer = null;
 let isGameRunning = false;
-let playMode = PLAY_MODES.player;
+let playMode = null;
 let playfield = null;
+let firstTurn = Boolean(Math.round(Math.random() * 1));
 
 const initGame = () => {
   continueGameIfStored();
@@ -22,6 +24,7 @@ const initGame = () => {
 
 const handleSetupFormSubmit = (evt) => {
   evt.preventDefault();
+  playMode = evt.target.opponent.value;
   startNewGame();
 };
 
@@ -49,7 +52,8 @@ const startNewGame = () => {
   startGame();
   playfield = Array(9).fill("");
   cells.forEach((cell) => (cell.textContent = ""));
-  setCurrentPlayer(PLAYERS.x);
+  setCurrentPlayer(PLAYERS.X);
+  if (playMode !== PLAY_MODES.PLAYER && !firstTurn) makeTurn(playMode);
 };
 
 const continueGameIfStored = () => {
@@ -76,8 +80,22 @@ const handleCellClick = (evt) => {
   if (checkGameOver()) {
     finishGame();
   } else {
-    setCurrentPlayer(currentPlayer === PLAYERS.x ? PLAYERS.o : PLAYERS.x);
-    localStorage.setItem("game", JSON.stringify({ playfield, currentPlayer }));
+    setCurrentPlayer(currentPlayer === PLAYERS.X ? PLAYERS.O : PLAYERS.X);
+    localStorage.setItem(
+      "game",
+      JSON.stringify({ playfield, currentPlayer, playMode })
+    );
+    if (
+      playMode !== PLAY_MODES.PLAYER &&
+      ((!firstTurn && currentPlayer === PLAYERS.X) ||
+        (firstTurn && currentPlayer === PLAYERS.O))
+    ) {
+      playfieldElement.classList.add("game__playfield_blocked");
+      setTimeout(() => {
+        makeTurn(playMode);
+        playfieldElement.classList.remove("game__playfield_blocked");
+      }, 500);
+    }
   }
 };
 
@@ -109,6 +127,7 @@ const checkGameOver = () => {
 
 const finishGame = () => {
   isGameRunning = false;
+  playfieldElement.classList.add("game__playfield_blocked");
   playAgainButton.classList.remove("inactive");
   localStorage.removeItem("game");
 };
@@ -116,7 +135,19 @@ const finishGame = () => {
 const handlePlayAgainButtonClick = () => {
   setMessage("");
   setupForm.classList.remove("inactive");
+  playfieldElement.classList.remove("game__playfield_blocked");
   playAgainButton.classList.add("inactive");
+};
+
+const clickRandomCell = () => {
+  const randomIndex = Math.floor(Math.random() * cells.length);
+  if (cells[randomIndex].textContent === "") {
+    cells[randomIndex].click();
+  } else clickRandomCell();
+};
+
+const makeTurn = (playMode) => {
+  if (playMode === PLAY_MODES.EASY) clickRandomCell();
 };
 
 window.addEventListener("load", initGame);

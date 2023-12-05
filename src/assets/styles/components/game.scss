@@ -21,6 +21,11 @@
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     border: 3px solid black;
+    pointer-events: auto;
+
+    &_blocked {
+      pointer-events: none;
+    }
   }
 
   &__cell {
