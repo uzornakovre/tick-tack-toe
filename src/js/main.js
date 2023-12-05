@@ -11,7 +11,7 @@ let currentPlayer = null;
 let isGameRunning = false;
 let playMode = null;
 let playfield = null;
-let firstTurn = Boolean(Math.round(Math.random() * 1));
+let firstTurn = false;
 
 const initGame = () => {
   continueGameIfStored();
@@ -49,6 +49,8 @@ const startGame = () => {
 };
 
 const startNewGame = () => {
+  firstTurn = !firstTurn;
+
   startGame();
   playfield = Array(9).fill("");
   cells.forEach((cell) => (cell.textContent = ""));
@@ -103,21 +105,31 @@ const handleCellClick = (evt) => {
   }
 };
 
-const checkLine = (line) => {
+const checkLine = (line, type = "all") => {
   const [a, b, c] = line;
+  const opponent = currentPlayer === PLAYERS.X ? PLAYERS.O : PLAYERS.X;
+  const target = type === "opponent" ? opponent : currentPlayer;
 
   const cellA = playfield[a];
   const cellB = playfield[b];
   const cellC = playfield[c];
 
-  if ([cellA, cellB, cellC].includes("")) {
-    return false;
-  } else return cellA === cellB && cellB === cellC;
+  if (type === "all") {
+    if ([cellA, cellB, cellC].includes("")) {
+      return false;
+    } else return cellA === cellB && cellB === cellC;
+  }
+
+  if (type === "opponent" || type === "current") {
+    if (cellA === target && cellB === target && cellC === "") return c;
+    if (cellA === target && cellC === target && cellB === "") return b;
+    if (cellB === target && cellC === target && cellA === "") return a;
+  }
 };
 
 const checkGameOver = () => {
   for (const line of WIN_LINES) {
-    if (checkLine(line, "full")) {
+    if (checkLine(line, "all")) {
       setMessage(`The winner is ${currentPlayer} !`);
       return true;
     }
@@ -150,26 +162,29 @@ const clickRandomCell = () => {
   } else clickRandomCell();
 };
 
-const checkOpponentLine = (line, player) => {
-  const [a, b, c] = line;
-  const opponent = player === PLAYERS.X ? PLAYERS.O : PLAYERS.X;
+const fillBeneficialCeil = () => {
+  let targetCell;
 
-  const cellA = playfield[a];
-  const cellB = playfield[b];
-  const cellC = playfield[c];
+  for (const line of WIN_LINES) {
+    targetCell = checkLine(line, "current");
+    if (targetCell) {
+      break;
+    }
+  }
 
-  if (cellA === opponent && cellB === opponent && cellC === "") return c;
-  if (cellA === opponent && cellC === opponent && cellB === "") return b;
-  if (cellB === opponent && cellC === opponent && cellA === "") return a;
+  const clickTargetCell = () => {
+    cells[targetCell].click();
+  };
+
+  return { targetCell, clickTargetCell };
 };
 
 const breakOpponentLine = () => {
   let targetCell;
 
   for (const line of WIN_LINES) {
-    targetCell = checkOpponentLine(line, currentPlayer);
+    targetCell = checkLine(line, "opponent");
     if (targetCell) {
-      console.log(targetCell);
       break;
     }
   }
@@ -182,12 +197,24 @@ const breakOpponentLine = () => {
 };
 
 const makeTurn = (playMode) => {
-  const clickTargetCell = breakOpponentLine().clickTargetCell;
+  const clickOpponentCell = breakOpponentLine().clickTargetCell;
+  const clickBeneficialCeil = fillBeneficialCeil().clickTargetCell;
 
   if (playMode === PLAY_MODES.EASY) clickRandomCell();
   if (playMode === PLAY_MODES.MEDIUM) {
     if (breakOpponentLine().targetCell) {
-      clickTargetCell();
+      clickOpponentCell();
+    } else clickRandomCell();
+  }
+  if (playMode === PLAY_MODES.HARD) {
+    if (cells[4].textContent === "") {
+      cells[4].click();
+    } else if (fillBeneficialCeil().targetCell) {
+      clickBeneficialCeil();
+    } else if (breakOpponentLine().targetCell) {
+      clickOpponentCell();
+    } else if (fillBeneficialCeil().targetCell) {
+      clickBeneficialCeil();
     } else clickRandomCell();
   }
 };
