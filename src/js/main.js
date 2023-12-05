@@ -61,7 +61,11 @@ const continueGameIfStored = () => {
 
   if (localStorage && storedGame) {
     startGame();
+
+    playMode = storedGame.playMode;
     playfield = storedGame.playfield;
+    firstTurn = storedGame.firstTurn;
+
     for (let i = 0; i < cells.length; i++) {
       cells[i].textContent = playfield[i];
     }
@@ -83,7 +87,7 @@ const handleCellClick = (evt) => {
     setCurrentPlayer(currentPlayer === PLAYERS.X ? PLAYERS.O : PLAYERS.X);
     localStorage.setItem(
       "game",
-      JSON.stringify({ playfield, currentPlayer, playMode })
+      JSON.stringify({ playfield, currentPlayer, playMode, firstTurn })
     );
     if (
       playMode !== PLAY_MODES.PLAYER &&
