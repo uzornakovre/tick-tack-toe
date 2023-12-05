@@ -117,7 +117,7 @@ const checkLine = (line) => {
 
 const checkGameOver = () => {
   for (const line of WIN_LINES) {
-    if (checkLine(line)) {
+    if (checkLine(line, "full")) {
       setMessage(`The winner is ${currentPlayer} !`);
       return true;
     }
@@ -150,8 +150,46 @@ const clickRandomCell = () => {
   } else clickRandomCell();
 };
 
+const checkOpponentLine = (line, player) => {
+  const [a, b, c] = line;
+  const opponent = player === PLAYERS.X ? PLAYERS.O : PLAYERS.X;
+
+  const cellA = playfield[a];
+  const cellB = playfield[b];
+  const cellC = playfield[c];
+
+  if (cellA === opponent && cellB === opponent && cellC === "") return c;
+  if (cellA === opponent && cellC === opponent && cellB === "") return b;
+  if (cellB === opponent && cellC === opponent && cellA === "") return a;
+};
+
+const breakOpponentLine = () => {
+  let targetCell;
+
+  for (const line of WIN_LINES) {
+    targetCell = checkOpponentLine(line, currentPlayer);
+    if (targetCell) {
+      console.log(targetCell);
+      break;
+    }
+  }
+
+  const clickTargetCell = () => {
+    cells[targetCell].click();
+  };
+
+  return { targetCell, clickTargetCell };
+};
+
 const makeTurn = (playMode) => {
+  const clickTargetCell = breakOpponentLine().clickTargetCell;
+
   if (playMode === PLAY_MODES.EASY) clickRandomCell();
+  if (playMode === PLAY_MODES.MEDIUM) {
+    if (breakOpponentLine().targetCell) {
+      clickTargetCell();
+    } else clickRandomCell();
+  }
 };
 
 window.addEventListener("load", initGame);
