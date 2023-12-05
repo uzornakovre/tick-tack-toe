@@ -3,36 +3,40 @@ import { PLAYERS, PLAY_MODES, WIN_LINES } from "../utils/constants";
 
 const playfieldElement = document.querySelector(".game__playfield");
 const cells = document.querySelectorAll(".game__cell");
-const setupForm = document.querySelector(".game__setup");
+const setModeForm = document.querySelector(".game__setup");
 const messageElement = document.querySelector(".game__message");
 const playAgainButton = document.querySelector("#play_again");
 
-let currentPlayer = null;
-let isGameRunning = false;
-let playMode = null;
-let playfield = null;
-let firstTurn = false;
+let currentPlayer = null; // здесь будет значение текущего игрока - X или O
+let isGameRunning = false; // запущена ли игра
+let playMode = null; // режим игры (человек / компьютер разной сложности)
+let playfield = null; // игровое поле
+let firstTurn = false; // ходит ли игрок первый (используется для режима игры с компьютером)
 
+// функция инициализации игры
 const initGame = () => {
-  continueGameIfStored();
+  continueGameIfStored(); // если в localStorage сохранена незаконченная партия, продолжим ее
 
   cells.forEach((cell) => {
     cell.addEventListener("click", handleCellClick);
   });
-  setupForm.addEventListener("submit", handleSetupFormSubmit);
+  setModeForm.addEventListener("submit", handleSetModeFormSubmit);
 };
 
-const handleSetupFormSubmit = (evt) => {
+// обработчик сабмита формы выбора режима
+const handleSetModeFormSubmit = (evt) => {
   evt.preventDefault();
   playMode = evt.target.opponent.value;
   startNewGame();
 };
 
+// функция назначения текущего игрока
 const setCurrentPlayer = (player) => {
   currentPlayer = player;
   setMessage(`${currentPlayer}, it's your turn!`);
 };
 
+// функция назначения сообщения-подсказки под игровым полем
 const setMessage = (message) => {
   if (message) {
     messageElement.classList.remove("inactive");
@@ -43,13 +47,15 @@ const setMessage = (message) => {
   messageElement.textContent = message;
 };
 
+// функция запуска игры
 const startGame = () => {
   isGameRunning = true;
-  setupForm.classList.add("inactive");
+  setModeForm.classList.add("inactive");
 };
 
+// функция запуска новой игры
 const startNewGame = () => {
-  firstTurn = !firstTurn;
+  firstTurn = !firstTurn; // при рестарте игры в режиме с компьютером будет чередоваться первый ход
 
   startGame();
   playfield = Array(9).fill("");
@@ -58,6 +64,7 @@ const startNewGame = () => {
   if (playMode !== PLAY_MODES.PLAYER && !firstTurn) makeTurn(playMode);
 };
 
+// функция запуска сохраненной игры
 const continueGameIfStored = () => {
   const storedGame = JSON.parse(localStorage.getItem("game"));
 
@@ -75,6 +82,7 @@ const continueGameIfStored = () => {
   }
 };
 
+// обработчик клика по ячейке
 const handleCellClick = (evt) => {
   const cell = evt.target;
 
@@ -105,6 +113,9 @@ const handleCellClick = (evt) => {
   }
 };
 
+// функция проверки линии, возможной для выигрыша, на вход принимает саму линию
+// и тип проверки (all = проверка на заполненность линии одним игроком, opponents и
+// current - проверка на частичную заполненность линии тем или иным игроком)
 const checkLine = (line, type = "all") => {
   const [a, b, c] = line;
   const opponent = currentPlayer === PLAYERS.X ? PLAYERS.O : PLAYERS.X;
@@ -114,12 +125,14 @@ const checkLine = (line, type = "all") => {
   const cellB = playfield[b];
   const cellC = playfield[c];
 
+  // используется для определения победителя
   if (type === "all") {
     if ([cellA, cellB, cellC].includes("")) {
       return false;
     } else return cellA === cellB && cellB === cellC;
   }
 
+  // используется для алгоритмов AI
   if (type === "opponent" || type === "current") {
     if (cellA === target && cellB === target && cellC === "") return c;
     if (cellA === target && cellC === target && cellB === "") return b;
@@ -127,20 +140,23 @@ const checkLine = (line, type = "all") => {
   }
 };
 
+// функция проверки, закончена ли игра
 const checkGameOver = () => {
+  // проверка на победителя
   for (const line of WIN_LINES) {
     if (checkLine(line, "all")) {
       setMessage(`The winner is ${currentPlayer} !`);
       return true;
     }
   }
-
+  // проверка на ничью
   if (!playfield.includes("")) {
     setMessage("Draw!");
     return true;
   }
 };
 
+// функция завершения игры
 const finishGame = () => {
   isGameRunning = false;
   playfieldElement.classList.add("game__playfield_blocked");
@@ -148,13 +164,17 @@ const finishGame = () => {
   localStorage.removeItem("game");
 };
 
+// обработчик клика по кнопке Play Again
 const handlePlayAgainButtonClick = () => {
   setMessage("");
-  setupForm.classList.remove("inactive");
+  setModeForm.classList.remove("inactive");
   playfieldElement.classList.remove("game__playfield_blocked");
   playAgainButton.classList.add("inactive");
 };
 
+// далее идут функции, отвечающие за режим игры с компьютером
+
+// функция, вызывающая клик по случайной ячейке
 const clickRandomCell = () => {
   const randomIndex = Math.floor(Math.random() * cells.length);
   if (cells[randomIndex].textContent === "") {
@@ -162,7 +182,8 @@ const clickRandomCell = () => {
   } else clickRandomCell();
 };
 
-const fillBeneficialCeil = () => {
+// функция, вызывающая клик по последней недостающей ячейке для выигрыша, если имеется
+const fillBeneficialCell = () => {
   let targetCell;
 
   for (const line of WIN_LINES) {
@@ -179,6 +200,7 @@ const fillBeneficialCeil = () => {
   return { targetCell, clickTargetCell };
 };
 
+// функция, вызывающая клик по последней недостающей ячейке для выигрыша противника, если имеется
 const breakOpponentLine = () => {
   let targetCell;
 
@@ -196,28 +218,28 @@ const breakOpponentLine = () => {
   return { targetCell, clickTargetCell };
 };
 
+// функция, отвечающая за ход компьютера, принимает режим сложности
 const makeTurn = (playMode) => {
   const clickOpponentCell = breakOpponentLine().clickTargetCell;
-  const clickBeneficialCeil = fillBeneficialCeil().clickTargetCell;
+  const clickBeneficialCell = fillBeneficialCell().clickTargetCell;
 
-  if (playMode === PLAY_MODES.EASY) clickRandomCell();
+  if (playMode === PLAY_MODES.EASY) clickRandomCell(); // при легком - случайная ячейка
   if (playMode === PLAY_MODES.MEDIUM) {
     if (breakOpponentLine().targetCell) {
-      clickOpponentCell();
-    } else clickRandomCell();
+      clickOpponentCell(); // при среднем - пытается помешать противнику,
+    } else clickRandomCell(); // а потом случайная ячейка
   }
   if (playMode === PLAY_MODES.HARD) {
     if (cells[4].textContent === "") {
-      cells[4].click();
-    } else if (fillBeneficialCeil().targetCell) {
-      clickBeneficialCeil();
+      cells[4].click(); // при сложном - если центральная ячейка свободна, выбирает ее
+    } else if (fillBeneficialCell().targetCell) {
+      clickBeneficialCell(); // если не хватает одной ячейки до выигрыша - выбирает ее
     } else if (breakOpponentLine().targetCell) {
-      clickOpponentCell();
-    } else if (fillBeneficialCeil().targetCell) {
-      clickBeneficialCeil();
+      clickOpponentCell(); // пытается помешать противнику
     } else clickRandomCell();
   }
 };
 
+// инициализация приложения
 window.addEventListener("load", initGame);
 playAgainButton.addEventListener("click", handlePlayAgainButtonClick);
