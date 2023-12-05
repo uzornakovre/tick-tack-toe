@@ -107,7 +107,9 @@ const handleCellClick = (evt) => {
       playfieldElement.classList.add("game__playfield_blocked");
       setTimeout(() => {
         makeTurn(playMode);
-        playfieldElement.classList.remove("game__playfield_blocked");
+        if (isGameRunning) {
+          playfieldElement.classList.remove("game__playfield_blocked");
+        }
       }, 500);
     }
   }
