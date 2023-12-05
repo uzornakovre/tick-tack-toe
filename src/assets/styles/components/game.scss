@@ -8,11 +8,7 @@
     font-size: 60px;
   }
 
-  &__winner {
-    margin: 10px 0;
-  }
-
-  &__turn-info {
+  &__message {
     margin: 10px 0;
   }
 
@@ -68,12 +64,12 @@
     text-align: center;
   }
 
-  &__start {
+  &__button {
     border: none;
     border-radius: 8px;
     background-color: black;
     color: whitesmoke;
-    padding: 4px;
+    padding: 8px;
     cursor: pointer;
     transition: all 0.2s linear;
     text-transform: uppercase;
