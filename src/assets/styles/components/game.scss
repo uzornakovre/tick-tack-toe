@@ -3,10 +3,18 @@
   margin: 0 auto;
   user-select: none;
 
+  @media screen and (max-width: 767px) {
+    width: 100%;
+  }
+
   &__title {
     margin: 15px 0;
     font-size: 60px;
     font-weight: 400;
+
+    @media screen and (max-width: 767px) {
+      font-size: 40px;
+    }
   }
 
   &__message {
@@ -23,6 +31,13 @@
     grid-template-rows: repeat(3, 1fr);
     border: 3px solid black;
     pointer-events: auto;
+
+    @media screen and (max-width: 767px) {
+      width: 300px;
+      height: auto;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+    }
 
     &_blocked {
       pointer-events: none;
@@ -42,6 +57,10 @@
     &:hover {
       background-color: lightgray;
     }
+
+    @media screen and (max-width: 767px) {
+      font-size: 60px;
+    }
   }
 
   &__setup {
@@ -57,6 +76,11 @@
     gap: 20px;
     justify-content: center;
     background-color: whitesmoke;
+
+    @media screen and (max-width: 767px) {
+      width: 300px;
+      height: 300px;
+    }
   }
 
   &__opponent {
@@ -68,6 +92,11 @@
     padding: 4px;
     cursor: pointer;
     text-align: center;
+
+    @media screen and (max-width: 767px) {
+      min-width: 100px;
+      width: 90%;
+    }
   }
 
   &__button {
